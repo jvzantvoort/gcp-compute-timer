@@ -2,12 +2,15 @@ package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
+	"time"
 	"strings"
+	"io/ioutil"
 	"errors"
+	"context"
 	"bufio"
 	log "github.com/sirupsen/logrus"
+	"cloud.google.com/go/storage"
 )
 
 type InstanceConfig struct {
@@ -106,34 +109,57 @@ func NewInstanceConfig(instr string) (*InstanceConfig, error) {
 	return retv, nil
 }
 
-func (ics *InstanceConfigs) readconfig(filepath string) {
+func (ics *InstanceConfigs) readconfig(bucketname string) {
 
-	if targetExists(filepath) {
-		file, err := os.Open(filepath)
-		if err != nil {
-			log.Fatal(err)
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	data, err := readFromBucket(client, bucketname, "gcp-compute-timer.txt")
+	if err != nil {
+		log.Fatalf("Cannot read object: %v", err)
+	}
+
+	scanner := bufio.NewScanner(strings.NewReader(string(data)))
+	for scanner.Scan() {
+		read_line := scanner.Text()
+		if xxxxx, err := NewInstanceConfig(read_line); err == nil {
+			log.Debugf("Config %s/%s/%s", xxxxx.Project, xxxxx.Project, xxxxx.Name)
+			ics.InstanceConfigs = append(ics.InstanceConfigs, *xxxxx)
+		} else {
+			log.Errorf("error %s", err)
+
 		}
-		defer file.Close()
+	}
 
-		scanner := bufio.NewScanner(file)
-		for scanner.Scan() {
-			read_line := scanner.Text()
-			if xxxxx, err := NewInstanceConfig(read_line); err == nil {
-				log.Debugf("Config %s/%s/%s", xxxxx.Project, xxxxx.Project, xxxxx.Name)
-				ics.InstanceConfigs = append(ics.InstanceConfigs, *xxxxx)
-			} else {
-				log.Errorf("error %s", err)
-
-			}
-		}
-
-		if err := scanner.Err(); err != nil {
-			log.Fatal(err)
-		}
-	} else {
-		log.Errorf("Cannot open %s\n", filepath)
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
 	}
 }
+
+func readFromBucket(client *storage.Client, bucket, object string) ([]byte, error) {
+	// [START download_file]
+	ctx := context.Background()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
+	defer cancel()
+	rc, err := client.Bucket(bucket).Object(object).NewReader(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer rc.Close()
+
+	data, err := ioutil.ReadAll(rc)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+	// [END download_file]
+}
+
+
 
 func (ics *InstanceConfigs) getDefs(imagename string, defaultval int)  (int, string) {
 	maxage := defaultval
@@ -150,8 +176,8 @@ func (ics *InstanceConfigs) getDefs(imagename string, defaultval int)  (int, str
 	return maxage, action
 }
 
-func NewInstanceConfigs(filepath string) *InstanceConfigs {
+func NewInstanceConfigs(bucketname string) *InstanceConfigs {
 	retv := &InstanceConfigs{}
-	retv.readconfig(filepath)
+	retv.readconfig(bucketname)
 	return retv
 }

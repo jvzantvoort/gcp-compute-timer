@@ -62,7 +62,7 @@ func main() {
 	// Only log the warning severity or above.
 	log.SetLevel(log.InfoLevel)
 
-	nisconf := NewInstanceConfigs("data.txt")
+	nisconf := NewInstanceConfigs(configuration.GCP.Bucket)
 
 	// Get the instances and their state
 	instances := NewInstances(gcp_project, gcp_zone)
@@ -73,7 +73,9 @@ func main() {
 		if instance.status == "RUNNING" {
 			if instance.IsTooOld() {
 				log.Warningf("image: %s state: %s age : %s\n", instance.name, instance.status, SecondsToHuman(instance.age))
-				log.Debugf("action: %s", action)
+				log.Warningf("  max age: %s\n", SecondsToHuman(int64(instance.maxage)))
+				log.Warningf("  action: %s", action)
+
 			} else {
 				log.Infof("image: %s state: %s age : %s\n", instance.name, instance.status, SecondsToHuman(instance.age))
 			}
