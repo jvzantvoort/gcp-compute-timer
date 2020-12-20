@@ -16,8 +16,20 @@ So what I need is a way to:
 * react to the image exceeding its limit
 
 Google has an excelent API but I don't want to schlep around the SDK
-all the time therefor I'm writing this in golang (although a barely
-for past "hello world").
+all the time therefor I'm writing this in golang (although I am barely
+past the "hello world" phase).
+
+# Configuration
+
+Create a configuration file called
+``~/.config/gcp-compute-timer.yml`` with the following content:
+
+```
+gcp:
+  project: jdc-development
+  zone: europe-west4-a
+  bucket: jdc-development
+```
 
 # GCP
 
