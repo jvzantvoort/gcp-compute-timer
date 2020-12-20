@@ -1,10 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"os"
 	"os/user"
 	"path"
-	"fmt"
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
@@ -12,12 +12,16 @@ import (
 	"github.com/jvzantvoort/gcp-compute-timer/config"
 )
 
+const (
+	DEFAULT_MAX_AGE int = 43200
+)
+
 func getconfiguration(homedir string) config.Configuration {
 	var configuration config.Configuration
 	configdir := path.Join(homedir, ".config")
-	viper.SetConfigName("gcp-compute-timer")  // name of config file (without extension)
-	viper.AddConfigPath(configdir)    // optionally look for config in the ~/.config directory
-	viper.AddConfigPath("/etc/gcp") // optionally look for config in the working directory
+	viper.SetConfigName("gcp-compute-timer") // name of config file (without extension)
+	viper.AddConfigPath(configdir)           // optionally look for config in the ~/.config directory
+	viper.AddConfigPath("/etc/gcp")          // optionally look for config in the working directory
 
 	err := viper.ReadInConfig() // Find and read the config file
 
@@ -56,18 +60,28 @@ func main() {
 	log.SetOutput(os.Stdout)
 
 	// Only log the warning severity or above.
-	log.SetLevel(log.DebugLevel)
-	log.Println("start")
+	log.SetLevel(log.InfoLevel)
+
+	nisconf := NewInstanceConfigs("data.txt")
+
+	// Get the instances and their state
 	instances := NewInstances(gcp_project, gcp_zone)
 	for _, instance := range instances.Instances {
-		log.Printf("found %s state: %s\n", instance.name, instance.status)
-		if instance.status != "RUNNING" {
-			log.Printf("skipping %s\n", instance.name)
-			continue
-		}
-		log.Printf("%s %d\n", instance.name, instance.StartTime())
-	}
+		var action string
+		instance.maxage, action = nisconf.getDefs(instance.name, DEFAULT_MAX_AGE)
 
+		if instance.status == "RUNNING" {
+			if instance.IsTooOld() {
+				log.Warningf("image: %s state: %s age : %s\n", instance.name, instance.status, SecondsToHuman(instance.age))
+				log.Debugf("action: %s", action)
+			} else {
+				log.Infof("image: %s state: %s age : %s\n", instance.name, instance.status, SecondsToHuman(instance.age))
+			}
+
+		} else {
+			log.Infof("image: %s state: %s\n", instance.name, instance.status)
+		}
+	}
 }
 
 // vim: noexpandtab filetype=go

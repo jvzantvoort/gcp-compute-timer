@@ -1,8 +1,8 @@
 package main
 
 import (
-	"time"
 	log "github.com/sirupsen/logrus"
+	"time"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
@@ -14,12 +14,15 @@ type Instance struct {
 	name               string
 	status             string
 	LastStartTimestamp string
+	age                int64
+	maxage             int
 }
 
 // Struct to contain all the instances
 type Instances struct {
 	project   string
 	zone      string
+	now       int64
 	Instances []Instance
 }
 
@@ -30,6 +33,13 @@ func (in *Instance) StartTime() int64 {
 		log.Error("cannot parse LastStartTimestamp")
 	}
 	return retv.Unix()
+}
+
+func (in Instance) IsTooOld() bool {
+	if int(in.age) > in.maxage {
+		return true
+	}
+	return false
 }
 
 // getInstances loads the instance information from google
@@ -49,11 +59,13 @@ func (i *Instances) getInstances() {
 	req := computeService.Instances.List(i.project, i.zone)
 
 	if err := req.Pages(ctx, func(page *compute.InstanceList) error {
-		var inst Instance
 		for _, instance := range page.Items {
+			var inst Instance
 			inst.name = instance.Name
 			inst.status = instance.Status
 			inst.LastStartTimestamp = instance.LastStartTimestamp
+			inst.age = i.now - inst.StartTime()
+			inst.maxage = 86400
 			i.Instances = append(i.Instances, inst)
 		}
 		return nil
@@ -66,6 +78,8 @@ func (i *Instances) getInstances() {
 // NewInstances initializes the instances object
 func NewInstances(project, zone string) *Instances {
 	retv := &Instances{}
+	now := time.Now()
+	retv.now = now.Unix()
 	retv.project = project
 	retv.zone = zone
 	retv.getInstances()
