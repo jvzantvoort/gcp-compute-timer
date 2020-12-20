@@ -1,26 +1,38 @@
 package main
 
 import (
-	"log"
+	"time"
+	log "github.com/sirupsen/logrus"
 
 	"golang.org/x/net/context"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/compute/v1"
 )
 
+// Struct to contain the relevant element of an instance
 type Instance struct {
 	name               string
 	status             string
 	LastStartTimestamp string
-	starttime          int
 }
 
+// Struct to contain all the instances
 type Instances struct {
 	project   string
 	zone      string
 	Instances []Instance
 }
 
+// StartTime converts the LastStartTimestamp string to an epoch int64
+func (in *Instance) StartTime() int64 {
+	retv, err := time.Parse(time.RFC3339, in.LastStartTimestamp)
+	if err != nil {
+		log.Error("cannot parse LastStartTimestamp")
+	}
+	return retv.Unix()
+}
+
+// getInstances loads the instance information from google
 func (i *Instances) getInstances() {
 	ctx := context.Background()
 
@@ -39,9 +51,9 @@ func (i *Instances) getInstances() {
 	if err := req.Pages(ctx, func(page *compute.InstanceList) error {
 		var inst Instance
 		for _, instance := range page.Items {
-			log.Println(instance.Name)
 			inst.name = instance.Name
 			inst.status = instance.Status
+			inst.LastStartTimestamp = instance.LastStartTimestamp
 			i.Instances = append(i.Instances, inst)
 		}
 		return nil
@@ -51,6 +63,7 @@ func (i *Instances) getInstances() {
 
 }
 
+// NewInstances initializes the instances object
 func NewInstances(project, zone string) *Instances {
 	retv := &Instances{}
 	retv.project = project
