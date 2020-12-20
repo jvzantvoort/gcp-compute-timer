@@ -31,6 +31,21 @@ gcp:
   bucket: bucket_name
 ```
 
+In the mentioned bucket create a file ``gcp-compute-timer.txt`` with
+the content like this:
+
+```
+tstproj/europe-west4-a/ws_rhel7_01 workday None
+project_name/zone/centos-7-ws 7200 stop
+project_name/zone/centos-7-ws 7200 shell mailx ......
+```
+
+The column are as follows:
+
+* instance path (``project_name/zone/instancename``)
+* max age (seconds, "workday", "day" or "week")
+* action (default: None, FIXME: add something useful)
+
 # GCP
 
 ## API instructions
