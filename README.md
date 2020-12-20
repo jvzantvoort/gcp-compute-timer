@@ -26,9 +26,9 @@ Create a configuration file called
 
 ```
 gcp:
-  project: jdc-development
+  project: project_name
   zone: europe-west4-a
-  bucket: jdc-development
+  bucket: bucket_name
 ```
 
 # GCP
