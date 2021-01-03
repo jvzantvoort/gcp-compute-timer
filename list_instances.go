@@ -13,6 +13,8 @@ import (
 // Instance struct to contain the relevant element of an instance
 type Instance struct {
 	name               string
+	project            string
+	zone               string
 	status             string
 	LastStartTimestamp string
 	age                int64
@@ -44,6 +46,31 @@ func (in Instance) IsTooOld() bool {
 	return false
 }
 
+func (in Instance) Stop() bool {
+
+	ctx := context.Background()
+
+	c, err := google.DefaultClient(ctx, compute.CloudPlatformScope)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	computeService, err := compute.New(c)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	resp, err := computeService.Instances.Stop(in.project, in.zone, in.name).Context(ctx).Do()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// TODO: Change code below to process the `resp` object:
+	log.Debugf("%#v", resp)
+	log.Debugf("stop: %s", in.name)
+	return true
+}
+
 // loadInstances loads the instance information from google
 func (i *Instances) loadInstances() {
 	ctx := context.Background()
@@ -65,6 +92,8 @@ func (i *Instances) loadInstances() {
 			var inst Instance
 			inst.name = instance.Name
 			inst.status = instance.Status
+			inst.project = i.project
+			inst.zone = i.zone
 			inst.LastStartTimestamp = instance.LastStartTimestamp
 			inst.age = i.now - inst.StartTime()
 			inst.maxage = 86400

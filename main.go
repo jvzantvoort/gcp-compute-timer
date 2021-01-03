@@ -14,6 +14,7 @@ func InstanceWorker(instance Instance, instanceconfig InstanceConfigs) {
 	log.Debugf("%s: start", instance_name)
 	defer log.Debugf("%s: end", instance_name)
 
+	var action string
 	instance.maxage, action = instanceconfig.getDefs(instance_name, DEFAULT_MAX_AGE)
 
 	if instance.status != "RUNNING" {
@@ -48,7 +49,7 @@ func Worker(project_name, zone_name, bucket_name string) {
 	// Get the instances and their state
 	instances := NewInstances(project_name, zone_name)
 	for _, instance := range instances.Instances {
-		InstanceWorker(instance, instanceconfig)
+		InstanceWorker(instance, *instanceconfig)
 	}
 
 }
