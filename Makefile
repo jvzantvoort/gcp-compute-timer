@@ -1,5 +1,5 @@
 NAME := gcp-compute-timer
-VERSION := $(shell git describe --tags --abbrev=0)
+VERSION = $(shell git describe --tags --abbrev=0|sed 's,gcp-compute-timer-,,')
 REVISION := $(shell git rev-parse --short HEAD)
 COMMANDS := gcp-compute-timer
 LDFLAGS := -X 'main.version=$(VERSION)' \
