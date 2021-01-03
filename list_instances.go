@@ -10,7 +10,7 @@ import (
 	"google.golang.org/api/compute/v1"
 )
 
-// Struct to contain the relevant element of an instance
+// Instance struct to contain the relevant element of an instance
 type Instance struct {
 	name               string
 	status             string
@@ -19,7 +19,7 @@ type Instance struct {
 	maxage             int
 }
 
-// Struct to contain all the instances
+// Instances struct to contain all the instances
 type Instances struct {
 	project   string
 	zone      string
@@ -36,6 +36,7 @@ func (in *Instance) StartTime() int64 {
 	return retv.Unix()
 }
 
+// IsTooOld return if an instance is too old
 func (in Instance) IsTooOld() bool {
 	if int(in.age) > in.maxage {
 		return true

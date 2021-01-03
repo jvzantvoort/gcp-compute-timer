@@ -14,6 +14,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// InstanceConfig FIXME putin somthing useful
 type InstanceConfig struct {
 	Project string
 	Zone    string
@@ -22,6 +23,7 @@ type InstanceConfig struct {
 	Action  string
 }
 
+// InstanceConfigs FIXME putin somthing useful
 type InstanceConfigs struct {
 	InstanceConfigs []InstanceConfig
 }
@@ -31,6 +33,7 @@ func splitParam(parameter string) []string {
 	return strings.Split(parameter, "/")
 }
 
+// Description return the description of an instance
 func (ic InstanceConfig) Description() string {
 	return fmt.Sprintf("%s/%s/%s", ic.Project, ic.Zone, ic.Name)
 }
@@ -57,6 +60,7 @@ func calcAge(calcstring string) (int, error) {
 
 }
 
+// NewInstanceConfig initialize a new InstanceConfig
 func NewInstanceConfig(instr string) (*InstanceConfig, error) {
 	retv := &InstanceConfig{}
 
@@ -96,7 +100,7 @@ func NewInstanceConfig(instr string) (*InstanceConfig, error) {
 	if maxage, err := calcAge(cols[0]); err == nil {
 		retv.MaxAge = maxage
 	} else {
-		return retv, fmt.Errorf("error %v\n", err)
+		return retv, fmt.Errorf("error %v", err)
 	}
 	log.Debugf("%s max age %d\n", retv.Description(), retv.MaxAge)
 
@@ -125,8 +129,8 @@ func (ics *InstanceConfigs) readconfig(bucketname string) {
 
 	scanner := bufio.NewScanner(strings.NewReader(string(data)))
 	for scanner.Scan() {
-		read_line := scanner.Text()
-		if xxxxx, err := NewInstanceConfig(read_line); err == nil {
+		readline := scanner.Text()
+		if xxxxx, err := NewInstanceConfig(readline); err == nil {
 			log.Debugf("Config %s/%s/%s", xxxxx.Project, xxxxx.Project, xxxxx.Name)
 			ics.InstanceConfigs = append(ics.InstanceConfigs, *xxxxx)
 		} else {
@@ -175,6 +179,7 @@ func (ics *InstanceConfigs) getDefs(imagename string, defaultval int) (int, stri
 	return maxage, action
 }
 
+// NewInstanceConfigs initialize the InstanceConfigs object
 func NewInstanceConfigs(bucketname string) *InstanceConfigs {
 	retv := &InstanceConfigs{}
 	retv.readconfig(bucketname)
