@@ -1,16 +1,17 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
-	"time"
-	"strings"
-	"io/ioutil"
-	"errors"
-	"context"
 	"bufio"
-	log "github.com/sirupsen/logrus"
+	"context"
+	"errors"
+	"fmt"
+	"io/ioutil"
+	"strconv"
+	"strings"
+	"time"
+
 	"cloud.google.com/go/storage"
+	log "github.com/sirupsen/logrus"
 )
 
 type InstanceConfig struct {
@@ -159,9 +160,7 @@ func readFromBucket(client *storage.Client, bucket, object string) ([]byte, erro
 	// [END download_file]
 }
 
-
-
-func (ics *InstanceConfigs) getDefs(imagename string, defaultval int)  (int, string) {
+func (ics *InstanceConfigs) getDefs(imagename string, defaultval int) (int, string) {
 	maxage := defaultval
 	action := "None"
 

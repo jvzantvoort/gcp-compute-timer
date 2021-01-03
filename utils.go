@@ -5,8 +5,9 @@ import (
 	"path"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
 	"fmt"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // SecondsToHuman translate seconds into a human readable format.

@@ -12,6 +12,15 @@ GO ?= GO111MODULE=on go
 fmt: ## Formatting source codes.
 	@$(GOIMPORTS) -w ./gcp-compute-timer
 
+.PHONY: tags
+tags:
+	@find "$${PWD}" -type f -name '*.go' -not -path '*/vendor/*'| sed "s,$${PWD}/,," | xargs gotags >tags
+
+.PHONY: pretty
+pretty:
+	@find "$${PWD}" -type f -name '*.go' -not -path '*/vendor/*' -exec goimports -w "{}" \;; \
+	find "$${PWD}" -type f -name '*.go' -not -path '*/vendor/*' -exec gofmt -w "{}" \;
+
 .PHONY: lint
 lint: ## Run golint and go vet.
 	@$(GOCILINT) run --no-config --disable-all --enable=goimports --enable=misspell ./...
