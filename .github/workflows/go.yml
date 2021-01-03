@@ -33,5 +33,8 @@ jobs:
       run: go test -race ./...
 
     - name: Build
-      run: go build -v ./cmd/gcp-compute-timer
+      run: |
+        pwd
+        ls -l
+        go build -v ./cmd/gcp-compute-timer
 
