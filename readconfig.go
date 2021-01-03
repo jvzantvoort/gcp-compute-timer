@@ -1,4 +1,4 @@
-package main
+package gcpcomputetimer
 
 import (
 	"bufio"
@@ -23,11 +23,7 @@ type InstanceConfig struct {
 	Action  string
 }
 
-// InstanceConfigs FIXME putin somthing useful
-type InstanceConfigs struct {
-	InstanceConfigs []InstanceConfig
-}
-
+// splitParam split a parameter and return a list of strings
 func splitParam(parameter string) []string {
 	parameter = strings.TrimSpace(parameter)
 	return strings.Split(parameter, "/")
@@ -38,7 +34,9 @@ func (ic InstanceConfig) Description() string {
 	return fmt.Sprintf("%s/%s/%s", ic.Project, ic.Zone, ic.Name)
 }
 
-func calcAge(calcstring string) (int, error) {
+// calcMaxUptimeSecs calculate the maximum amount of seconds an instanace may
+// be up.
+func calcMaxUptimeSecs(calcstring string) (int, error) {
 
 	if number, err := strconv.Atoi(calcstring); err == nil {
 		return number, nil
@@ -97,7 +95,7 @@ func NewInstanceConfig(instr string) (*InstanceConfig, error) {
 		return retv, fmt.Errorf("No age defined")
 	}
 
-	if maxage, err := calcAge(cols[0]); err == nil {
+	if maxage, err := calcMaxUptimeSecs(cols[0]); err == nil {
 		retv.MaxAge = maxage
 	} else {
 		return retv, fmt.Errorf("error %v", err)
@@ -114,15 +112,22 @@ func NewInstanceConfig(instr string) (*InstanceConfig, error) {
 	return retv, nil
 }
 
-func (ics *InstanceConfigs) readconfig(bucketname string) {
+// InstanceConfigs FIXME putin somthing useful
+type InstanceConfigs struct {
+	Bucketname      string
+	InstanceConfigs []InstanceConfig
+}
+
+func (ics *InstanceConfigs) readConfig() {
 
 	ctx := context.Background()
 	client, err := storage.NewClient(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer client.Close()
 
-	data, err := readFromBucket(client, bucketname, "gcp-compute-timer.txt")
+	data, err := ics.readFromBucket(client, "gcp-compute-timer.txt")
 	if err != nil {
 		log.Fatalf("Cannot read object: %v", err)
 	}
@@ -130,9 +135,9 @@ func (ics *InstanceConfigs) readconfig(bucketname string) {
 	scanner := bufio.NewScanner(strings.NewReader(string(data)))
 	for scanner.Scan() {
 		readline := scanner.Text()
-		if xxxxx, err := NewInstanceConfig(readline); err == nil {
-			log.Debugf("Config %s/%s/%s", xxxxx.Project, xxxxx.Project, xxxxx.Name)
-			ics.InstanceConfigs = append(ics.InstanceConfigs, *xxxxx)
+		if instanceconfig_object, err := NewInstanceConfig(readline); err == nil {
+			log.Debugf("Config %s/%s/%s", instanceconfig_object.Project, instanceconfig_object.Project, instanceconfig_object.Name)
+			ics.InstanceConfigs = append(ics.InstanceConfigs, *instanceconfig_object)
 		} else {
 			log.Errorf("error %s", err)
 
@@ -144,13 +149,12 @@ func (ics *InstanceConfigs) readconfig(bucketname string) {
 	}
 }
 
-func readFromBucket(client *storage.Client, bucket, object string) ([]byte, error) {
-	// [START download_file]
+func (ics InstanceConfigs) readFromBucket(client *storage.Client, object string) ([]byte, error) {
 	ctx := context.Background()
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*50)
 	defer cancel()
-	rc, err := client.Bucket(bucket).Object(object).NewReader(ctx)
+	rc, err := client.Bucket(ics.Bucketname).Object(object).NewReader(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -161,7 +165,6 @@ func readFromBucket(client *storage.Client, bucket, object string) ([]byte, erro
 		return nil, err
 	}
 	return data, nil
-	// [END download_file]
 }
 
 func (ics *InstanceConfigs) getDefs(imagename string, defaultval int) (int, string) {
@@ -182,6 +185,7 @@ func (ics *InstanceConfigs) getDefs(imagename string, defaultval int) (int, stri
 // NewInstanceConfigs initialize the InstanceConfigs object
 func NewInstanceConfigs(bucketname string) *InstanceConfigs {
 	retv := &InstanceConfigs{}
-	retv.readconfig(bucketname)
+	retv.Bucketname = bucketname
+	retv.readConfig()
 	return retv
 }
