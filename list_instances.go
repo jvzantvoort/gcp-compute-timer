@@ -1,4 +1,4 @@
-package main
+package gcpcomputetimer
 
 import (
 	"time"
@@ -44,8 +44,8 @@ func (in Instance) IsTooOld() bool {
 	return false
 }
 
-// getInstances loads the instance information from google
-func (i *Instances) getInstances() {
+// loadInstances loads the instance information from google
+func (i *Instances) loadInstances() {
 	ctx := context.Background()
 
 	c, err := google.DefaultClient(ctx, compute.CloudPlatformScope)
@@ -84,6 +84,6 @@ func NewInstances(project, zone string) *Instances {
 	retv.now = now.Unix()
 	retv.project = project
 	retv.zone = zone
-	retv.getInstances()
+	retv.loadInstances()
 	return retv
 }
