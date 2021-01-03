@@ -36,6 +36,32 @@ func getconfiguration(homedir string) config.Configuration {
 	return configuration
 }
 
+func worker(project_name, zone_name, bucket_name string) {
+	inst_cfg := NewInstanceConfigs(bucket_name)
+
+	// Get the instances and their state
+	instances := NewInstances(project_name, zone_name)
+	for _, instance := range instances.Instances {
+		var action string
+		instance.maxage, action = inst_cfg.getDefs(instance.name, DEFAULT_MAX_AGE)
+
+		if instance.status == "RUNNING" {
+			if instance.IsTooOld() {
+				log.Warningf("image: %s state: %s age : %s\n", instance.name, instance.status, SecondsToHuman(instance.age))
+				log.Warningf("  max age: %s\n", SecondsToHuman(int64(instance.maxage)))
+				log.Warningf("  action: %s", action)
+
+			} else {
+				log.Infof("image: %s state: %s age : %s\n", instance.name, instance.status, SecondsToHuman(instance.age))
+			}
+
+		} else {
+			log.Infof("image: %s state: %s\n", instance.name, instance.status)
+		}
+	}
+
+}
+
 func main() {
 
 	// Get user info
@@ -54,6 +80,7 @@ func main() {
 
 	gcp_project := configuration.GCP.Project
 	gcp_zone := configuration.GCP.Zone
+	gcp_bucket := configuration.GCP.Bucket
 
 	// Output to stdout instead of the default stderr
 	// Can be any io.Writer, see below for File example
@@ -62,28 +89,7 @@ func main() {
 	// Only log the warning severity or above.
 	log.SetLevel(log.InfoLevel)
 
-	nisconf := NewInstanceConfigs(configuration.GCP.Bucket)
-
-	// Get the instances and their state
-	instances := NewInstances(gcp_project, gcp_zone)
-	for _, instance := range instances.Instances {
-		var action string
-		instance.maxage, action = nisconf.getDefs(instance.name, DEFAULT_MAX_AGE)
-
-		if instance.status == "RUNNING" {
-			if instance.IsTooOld() {
-				log.Warningf("image: %s state: %s age : %s\n", instance.name, instance.status, SecondsToHuman(instance.age))
-				log.Warningf("  max age: %s\n", SecondsToHuman(int64(instance.maxage)))
-				log.Warningf("  action: %s", action)
-
-			} else {
-				log.Infof("image: %s state: %s age : %s\n", instance.name, instance.status, SecondsToHuman(instance.age))
-			}
-
-		} else {
-			log.Infof("image: %s state: %s\n", instance.name, instance.status)
-		}
-	}
+	worker(gcp_project, gcp_zone, gcp_bucket)
 }
 
 // vim: noexpandtab filetype=go
