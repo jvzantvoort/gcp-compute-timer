@@ -1,12 +1,13 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"os"
 
 	log "github.com/sirupsen/logrus"
 
-	gcpt "github.com/jvzantvoort/gcp-compute-timer"
-	"github.com/jvzantvoort/gcp-compute-timer/config"
+	"github.com/google/subcommands"
 )
 
 func init() {
@@ -26,13 +27,16 @@ func init() {
 
 func main() {
 
-	configuration := config.NewConfiguration()
+	subcommands.Register(subcommands.HelpCommand(), "")
+	subcommands.Register(subcommands.FlagsCommand(), "")
+	subcommands.Register(subcommands.CommandsCommand(), "")
+	subcommands.Register(&ListSubCmd{}, "")
+	subcommands.Register(&CheckSubCmd{}, "")
 
-	gcp_project := configuration.GCP.Project
-	gcp_zone := configuration.GCP.Zone
-	gcp_bucket := configuration.GCP.Bucket
+	flag.Parse()
+	ctx := context.Background()
+	os.Exit(int(subcommands.Execute(ctx)))
 
-	gcpt.Worker(gcp_project, gcp_zone, gcp_bucket)
 }
 
 // vim: noexpandtab filetype=go

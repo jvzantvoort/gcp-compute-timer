@@ -14,13 +14,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-// InstanceConfig FIXME putin somthing useful
+// InstanceConfig configuration of a single instance.
 type InstanceConfig struct {
-	Project string
-	Zone    string
-	Name    string
-	MaxAge  int
-	Action  string
+	Project string // Name of the GCP Project
+	Zone    string // Name of the GCP Zone
+	Name    string // Name of the GCP Instance
+	MaxAge  int    // Maximum amount of seconds the machine can be up
+	Action  string // Action to be taken when time exceeded
 }
 
 // splitParam split a parameter and return a list of strings

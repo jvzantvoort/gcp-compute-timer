@@ -12,20 +12,22 @@ import (
 
 // Instance struct to contain the relevant element of an instance
 type Instance struct {
-	name               string
-	project            string
-	zone               string
-	status             string
+	Name               string
+	Project            string
+	Zone               string
+	Status             string
 	LastStartTimestamp string
-	age                int64
-	maxage             int
+	TooOld             bool
+	Age                int64
+	Action             string
+	MaxAge             int
 }
 
 // Instances struct to contain all the instances
 type Instances struct {
-	project   string
-	zone      string
-	now       int64
+	Project   string
+	Zone      string
+	Now       int64
 	Instances []Instance
 }
 
@@ -38,15 +40,9 @@ func (in *Instance) StartTime() int64 {
 	return retv.Unix()
 }
 
-// IsTooOld return if an instance is too old
-func (in Instance) IsTooOld() bool {
-	if int(in.age) > in.maxage {
-		return true
-	}
-	return false
-}
-
 func (in Instance) Stop() bool {
+	log.Debugf("Stop[%s]: start", in.Name)
+	defer log.Debugf("Stop[%s]: stop", in.Name)
 
 	ctx := context.Background()
 
@@ -60,14 +56,13 @@ func (in Instance) Stop() bool {
 		log.Fatal(err)
 	}
 
-	resp, err := computeService.Instances.Stop(in.project, in.zone, in.name).Context(ctx).Do()
+	resp, err := computeService.Instances.Stop(in.Project, in.Zone, in.Name).Context(ctx).Do()
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	// TODO: Change code below to process the `resp` object:
-	log.Debugf("%#v", resp)
-	log.Debugf("stop: %s", in.name)
+	log.Debugf("Stop[%s]: response: %#v", in.Name, resp)
 	return true
 }
 
@@ -85,18 +80,18 @@ func (i *Instances) loadInstances() {
 		log.Fatal(err)
 	}
 
-	req := computeService.Instances.List(i.project, i.zone)
+	req := computeService.Instances.List(i.Project, i.Zone)
 
 	if err := req.Pages(ctx, func(page *compute.InstanceList) error {
 		for _, instance := range page.Items {
 			var inst Instance
-			inst.name = instance.Name
-			inst.status = instance.Status
-			inst.project = i.project
-			inst.zone = i.zone
+			inst.Name = instance.Name
+			inst.Status = instance.Status
+			inst.Project = i.Project
+			inst.Zone = i.Zone
 			inst.LastStartTimestamp = instance.LastStartTimestamp
-			inst.age = i.now - inst.StartTime()
-			inst.maxage = 86400
+			inst.Age = i.Now - inst.StartTime()
+			inst.MaxAge = 86400
 			i.Instances = append(i.Instances, inst)
 		}
 		return nil
@@ -110,9 +105,9 @@ func (i *Instances) loadInstances() {
 func NewInstances(project, zone string) *Instances {
 	retv := &Instances{}
 	now := time.Now()
-	retv.now = now.Unix()
-	retv.project = project
-	retv.zone = zone
+	retv.Now = now.Unix()
+	retv.Project = project
+	retv.Zone = zone
 	retv.loadInstances()
 	return retv
 }
