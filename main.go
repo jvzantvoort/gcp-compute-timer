@@ -4,9 +4,6 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-const (
-	DEFAULT_MAX_AGE int = 43200
-)
 
 func InstanceWorker(instance Instance, instanceconfig InstanceConfigs) {
 
@@ -15,7 +12,7 @@ func InstanceWorker(instance Instance, instanceconfig InstanceConfigs) {
 	defer log.Debugf("%s: end", instance_name)
 
 	var action string
-	instance.maxage, action = instanceconfig.getDefs(instance_name, DEFAULT_MAX_AGE)
+	instance.maxage, action = instanceconfig.getDefs(instance_name, DefaultMaxAge)
 
 	if instance.status != "RUNNING" {
 		log.Debugf("%s: state: %s", instance_name, instance.status)
