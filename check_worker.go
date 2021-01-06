@@ -28,9 +28,8 @@ func translateAction(instance Instance, noexec bool) {
 		return
 	}
 
-
 	if strings.HasPrefix(instance.Action, "shell ") {
-		action :=  strings.TrimSpace(strings.TrimLeft(instance.Action, "shell"))
+		action := strings.TrimSpace(strings.TrimLeft(instance.Action, "shell"))
 		log.Debugf("Action[%s]: shell action: %s", instance.Name, action)
 	}
 

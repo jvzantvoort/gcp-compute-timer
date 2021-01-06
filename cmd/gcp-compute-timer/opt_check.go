@@ -12,8 +12,8 @@ import (
 )
 
 type CheckSubCmd struct {
-	noexec    bool
-	verbose   bool
+	noexec  bool
+	verbose bool
 }
 
 func (*CheckSubCmd) Name() string {
