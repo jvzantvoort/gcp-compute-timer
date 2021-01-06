@@ -169,7 +169,7 @@ func (ics InstanceConfigs) readFromBucket(client *storage.Client, object string)
 
 func (ics *InstanceConfigs) getDefs(imagename string, defaultval int) (int, string) {
 	maxage := defaultval
-	action := "None"
+	action := defaultAction
 
 	for _, ic := range ics.InstanceConfigs {
 		if ic.Name == imagename {
