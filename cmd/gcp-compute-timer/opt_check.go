@@ -13,7 +13,6 @@ import (
 
 type CheckSubCmd struct {
 	noexec    bool
-	printfull bool
 	verbose   bool
 }
 
@@ -38,8 +37,7 @@ Check instances
 }
 
 func (c *CheckSubCmd) SetFlags(f *flag.FlagSet) {
-	f.BoolVar(&c.noexec, "n", false, "Do not execute")
-	f.BoolVar(&c.printfull, "f", false, "Print full")
+	f.BoolVar(&c.noexec, "n", false, "Do not execute only display a list of images and actions")
 	f.BoolVar(&c.verbose, "v", false, "Verbose logging")
 }
 
@@ -57,7 +55,7 @@ func (c *CheckSubCmd) Execute(_ context.Context, f *flag.FlagSet, _ ...interface
 
 	log.Debugln("Start")
 
-	gcpt.RunCheck(gcp_project, gcp_zone, gcp_bucket, c.printfull, c.noexec)
+	gcpt.RunCheck(gcp_project, gcp_zone, gcp_bucket, c.noexec)
 
 	log.Debugln("End")
 

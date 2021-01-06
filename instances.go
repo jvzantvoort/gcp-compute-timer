@@ -1,6 +1,8 @@
 package gcpcomputetimer
 
 import (
+	"bytes"
+	"text/template"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -64,6 +66,20 @@ func (in Instance) Stop() bool {
 	// TODO: Change code below to process the `resp` object:
 	log.Debugf("Stop[%s]: response: %#v", in.Name, resp)
 	return true
+}
+
+// Parse string and translate template variables
+func (in Instance) Parse(templatestring string) string {
+	tmpl, err := template.New("prompt").Parse(templatestring)
+	if err != nil {
+		panic(err)
+	}
+	buf := new(bytes.Buffer)
+	err = tmpl.Execute(buf, in)
+	if err != nil {
+		panic(err)
+	}
+	return buf.String()
 }
 
 // loadInstances loads the instance information from google

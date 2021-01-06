@@ -14,6 +14,8 @@ func checkInstance(instance *Instance, instanceconfig InstanceConfigs) {
 	defer log.Debugf("checkInstance[%s]: end", instance.Name)
 
 	instance.MaxAge, instance.Action = instanceconfig.getDefs(instance.Name, constMaxAge)
+	// Translate shell commands
+	instance.Action = instance.Parse(instance.Action)
 
 	// Check if it is too old
 	if instance.Status != "RUNNING" {

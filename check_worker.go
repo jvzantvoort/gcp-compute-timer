@@ -28,13 +28,15 @@ func translateAction(instance Instance, noexec bool) {
 		return
 	}
 
+
 	if strings.HasPrefix(instance.Action, "shell ") {
-		log.Debugf("Action[%s]: shell action: %s", instance.Name, instance.Action)
+		action :=  strings.TrimSpace(strings.TrimLeft(instance.Action, "shell"))
+		log.Debugf("Action[%s]: shell action: %s", instance.Name, action)
 	}
 
 }
 
-func RunCheck(gcp_project string, gcp_zone string, gcp_bucket string, printfull bool, noexec bool) {
+func RunCheck(gcp_project string, gcp_zone string, gcp_bucket string, noexec bool) {
 	instanceconfig := NewInstanceConfigs(gcp_bucket)
 	log.Debugf("RunCheck[%s/%s]: start", gcp_project, gcp_zone)
 	defer log.Debugf("RunCheck[%s/%s]: end", gcp_project, gcp_zone)
@@ -74,7 +76,7 @@ func RunCheck(gcp_project string, gcp_zone string, gcp_bucket string, printfull 
 	for _, instance := range instances.Instances {
 		log.Debugf("RunCheck[%s/%s/%s]: start", gcp_project, gcp_zone, instance.Name)
 		if instance.TooOld {
-			log.Debugf("RunCheck[%s/%s/%s]: instance is too old", gcp_project, gcp_zone, instance.Name)
+			log.Warnf("RunCheck[%s/%s/%s]: instance is too old", gcp_project, gcp_zone, instance.Name)
 			translateAction(instance, noexec)
 		} else {
 			log.Debugf("RunCheck[%s/%s/%s]: instance is not too old", gcp_project, gcp_zone, instance.Name)

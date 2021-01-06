@@ -175,8 +175,8 @@ func (ics *InstanceConfigs) getDefs(imagename string, defaultval int) (int, stri
 		if ic.Name == imagename {
 			maxage = ic.MaxAge
 			action = ic.Action
-			log.Debugf("action: %v", action)
-			log.Debugf("maxage: %v", maxage)
+			log.Debugf("getDefs[%s/%d]: action: %v", imagename, defaultval, action)
+			log.Debugf("getDefs[%s/%d]: maxage: %v", imagename, defaultval, maxage)
 		}
 	}
 	return maxage, action
